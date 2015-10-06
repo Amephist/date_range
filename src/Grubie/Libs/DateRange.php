@@ -1,4 +1,5 @@
 <?php
+
 namespace Grubie\Libs;
 
 use DateTime;
@@ -19,12 +20,12 @@ class DateRange
     protected $end_date;
 
     /**
-     * @param  integer|string|DateTime  $start_date
-     * @param  integer|string|DateTime  $end_date
+     * @param int|string|DateTime $start_date
+     * @param int|string|DateTime $end_date
      * @returns DateRange
+     *
      * @throws BadFunctionCallException
      */
-
     public function __construct($start_date, $end_date)
     {
         if (is_string($start_date)) {
@@ -44,7 +45,7 @@ class DateRange
 
         if ($this->start_date > $this->end_date) {
             throw new BadFunctionCallException(
-                'start_date should be lower or equal to end_date, '.$this->__toString().' provided');
+                'start_date should be lower or equal to end_date, ' . $this->__toString() . ' provided');
         }
 
         return $this;
@@ -52,7 +53,7 @@ class DateRange
 
     public function __toString()
     {
-        return $this->getIsoStart().'|'.$this->getIsoEnd();
+        return $this->getIsoStart() . '|' . $this->getIsoEnd();
     }
 
     /**
@@ -72,7 +73,8 @@ class DateRange
     }
 
     /**
-     * Returns ISO 8601 start date formatted text
+     * Returns ISO 8601 start date formatted text.
+     *
      * @return string
      */
     public function getIsoStart()
@@ -81,7 +83,8 @@ class DateRange
     }
 
     /**
-     * Returns ISO 8601 end date formatted text
+     * Returns ISO 8601 end date formatted text.
+     *
      * @return string
      */
     public function getIsoEnd()
@@ -90,8 +93,10 @@ class DateRange
     }
 
     /**
-     * Converts the DateRange to a DatePeriod defined by $interval, defaults to 1 day
-     * @param  string     $interval
+     * Converts the DateRange to a DatePeriod defined by $interval, defaults to 1 day.
+     *
+     * @param string $interval
+     *
      * @return DatePeriod
      */
     public function asPeriod($interval = 'P1D')
@@ -106,8 +111,10 @@ class DateRange
     }
 
     /**
-     * Simple comparison of DateRanges
-     * @param  DateRange $range
+     * Simple comparison of DateRanges.
+     *
+     * @param DateRange $range
+     *
      * @return bool
      */
     public function isEquivalentTo(DateRange $range)
@@ -116,17 +123,20 @@ class DateRange
     }
 
     /**
-     * Return the number of days for this range
+     * Return the number of days for this range.
+     *
      * @return int
      */
     public function countDays()
     {
-        return intval($this->start_date->diff($this->end_date)->format("%a")) + 1;
+        return intval($this->start_date->diff($this->end_date)->format('%a')) + 1;
     }
 
     /**
-     * Returns if a DateTime object is within the current range
-     * @param  DateTime $date
+     * Returns if a DateTime object is within the current range.
+     *
+     * @param DateTime $date
+     *
      * @return bool
      */
     public function includes(DateTime $date)
@@ -135,13 +145,15 @@ class DateRange
     }
 
     /**
-     * Static methods
+     * Static methods.
      */
 
     /**
-     * Intersect a DateRange with another DateRange, returns a DateRange or NULL
-     * @param  DateRange      $left
-     * @param  DateRange      $right
+     * Intersect a DateRange with another DateRange, returns a DateRange or NULL.
+     *
+     * @param DateRange $left
+     * @param DateRange $right
+     *
      * @return DateRange|null
      */
     public static function intersect(DateRange $left, DateRange $right)
@@ -170,15 +182,17 @@ class DateRange
                     }
                 }
 
-                return new DateRange($start, $end);
+                return new self($start, $end);
             }
         }
     }
 
     /**
-     * Joins a DateRange with another DateRange, returns either DateRange or NULL if no join is possible
-     * @param  DateRange      $left
-     * @param  DateRange      $right
+     * Joins a DateRange with another DateRange, returns either DateRange or NULL if no join is possible.
+     *
+     * @param DateRange $left
+     * @param DateRange $right
+     *
      * @return DateRange|null
      */
     public static function join(DateRange $left, DateRange $right)
@@ -188,12 +202,12 @@ class DateRange
             list($left, $right) = array($right, $left);
         }
         if ($left->getEnd()->modify('+1 day') >= $right->getStart() and $left->getEnd() <= $right->getEnd()) {
-            return new DateRange($left->getStart(), $right->getEnd());
+            return new self($left->getStart(), $right->getEnd());
         } elseif ($left->getEnd() >= $right->getStart() and
             $left->getStart() <= $right->getStart() and
             $left->getEnd() >= $right->getEnd()
         ) {
-            return new DateRange($left->getStart(), $left->getEnd());
+            return new self($left->getStart(), $left->getEnd());
         }
 
         return;
@@ -201,9 +215,11 @@ class DateRange
 
     /**
      * Subtract from the first DateRange another DateRange and returns an array with the outcome
-     * The outcome can be either an empty array, a single DateRange or two DateRanges
-     * @param  DateRange   $minuend
-     * @param  DateRange   $subtrahend
+     * The outcome can be either an empty array, a single DateRange or two DateRanges.
+     *
+     * @param DateRange $minuend
+     * @param DateRange $subtrahend
+     *
      * @return DateRange[]
      */
     public static function subtract(DateRange $minuend, DateRange $subtrahend)
@@ -217,33 +233,35 @@ class DateRange
             and $subtrahend->getStart() <= $minuend->getEnd()
             and $subtrahend->getEnd() >= $minuend->getEnd()
         ) {
-            return array(new DateRange($minuend->getStart(), $subtrahend->getStart()->modify('-1 day')));
+            return array(new self($minuend->getStart(), $subtrahend->getStart()->modify('-1 day')));
         } elseif ($subtrahend->getEnd() >= $minuend->getStart()
             and $subtrahend->getStart() <= $minuend->getStart()
             and $subtrahend->getEnd() >= $minuend->getStart()
         ) {
-            return array(new DateRange($subtrahend->getEnd()->modify('+1 day'), $minuend->getEnd()));
+            return array(new self($subtrahend->getEnd()->modify('+1 day'), $minuend->getEnd()));
         } else {
             return array(
-                new DateRange($minuend->getStart(), $subtrahend->getStart()->modify('-1 day')),
-                new DateRange($subtrahend->getEnd()->modify('+1 day'), $minuend->getEnd()),
+                new self($minuend->getStart(), $subtrahend->getStart()->modify('-1 day')),
+                new self($subtrahend->getEnd()->modify('+1 day'), $minuend->getEnd()),
             );
         }
     }
 
     /**
      * Joins DateRanges if they overlap on some point.
-     * @param  DateRange[] $ranges
+     *
+     * @param DateRange[] $ranges
+     *
      * @return DateRange[]
      */
     public static function joinRanges(Array $ranges)
     {
-        for ($i = 0; $i < count($ranges); $i++) {
+        for ($i = 0; $i < count($ranges); ++$i) {
             $cmp = $ranges[$i];
             if ($cmp) { //Iterate over all of them unless we set them as null below because we joined them
                 $j = $i;
                 foreach (array_slice($ranges, $i + 1) as $range) { //The array gets smaller on each run
-                    $j++;
+                    ++$j;
                     if ($range) {
                         $result = self::join($cmp, $range);
                         if ($result) {
@@ -259,9 +277,11 @@ class DateRange
     }
 
     /**
-     * Intersects two array of ranges, the result is a new array of ranges
-     * @param  DateRange[] $left_ranges
-     * @param  DateRange[] $right_ranges
+     * Intersects two array of ranges, the result is a new array of ranges.
+     *
+     * @param DateRange[] $left_ranges
+     * @param DateRange[] $right_ranges
+     *
      * @return DateRange[]
      */
     public static function intersectRanges(Array $left_ranges, Array $right_ranges)
@@ -277,8 +297,10 @@ class DateRange
     }
 
     /**
-     * Auxiliary function to cleanup null values, restore index and sort results
-     * @param  DateRange[] $arr
+     * Auxiliary function to cleanup null values, restore index and sort results.
+     *
+     * @param DateRange[] $arr
+     *
      * @return DateRange[]
      */
     public static function cleanupSort(Array $arr)
@@ -290,8 +312,10 @@ class DateRange
     }
 
     /**
-     * Returns an array of ranges from an array of dates (strings for the moment)
-     * @param  array       $arr
+     * Returns an array of ranges from an array of dates (strings for the moment).
+     *
+     * @param array $arr
+     *
      * @return DateRange[]
      */
     public static function extractRanges(Array $arr)
@@ -302,12 +326,12 @@ class DateRange
             $start = $arr[0];
 
             foreach ($arr as $date) {
-                if (isset($prev) and date('Y-m-d', strtotime($date." - 1 day")) != $prev) {
+                if (isset($prev) and date('Y-m-d', strtotime($date . ' - 1 day')) != $prev) {
                     $end = $prev;
                 }
 
                 if (isset($start) and isset($end)) {
-                    $ranges[] = new DateRange($start, $end);
+                    $ranges[] = new self($start, $end);
                     $start = $date;
                     $end = null;
                     $prev = null;
@@ -317,10 +341,10 @@ class DateRange
             }
 
             if (isset($prev)) {
-                $ranges[] = new DateRange($start, $prev);
+                $ranges[] = new self($start, $prev);
             } else {
                 if (isset($start)) {
-                    $ranges[] = new DateRange($start, $start);
+                    $ranges[] = new self($start, $start);
                 }
             }
         }
