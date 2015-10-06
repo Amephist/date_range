@@ -96,10 +96,12 @@ class DateRange
      */
     public function asPeriod($interval = 'P1D')
     {
+        $end_date = clone $this->end_date;
+
         return new DatePeriod(
             $this->start_date,
             new DateInterval($interval),
-            $this->end_date->modify('+1 day')
+            $end_date->modify('+1 day')
         );
     }
 
